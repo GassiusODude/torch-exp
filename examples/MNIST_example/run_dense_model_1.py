@@ -3,6 +3,7 @@
 Use 2 layers of fully connected dense network to perform multiclass
 classification
 """
+from tqdm import tqdm
 import torch
 import torchvision
 from matplotlib import pyplot as plt
@@ -54,7 +55,7 @@ class DnnModel1(nn.Module):
 def train(model, epoch, device=torch.device('cpu'), writer=None):
     #model.train()
 
-    for batch_idx, (data, target) in enumerate(train_loader):
+    for batch_idx, (data, target) in enumerate(tqdm(train_loader)):
         optimizer.zero_grad()
         # move data to device
         data = data.to(device)

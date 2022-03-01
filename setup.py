@@ -18,6 +18,7 @@ setup(
         "torch",
         "tensorboard",
         "numpy",
+        "tqdm",             # progress bar
     ],
     dependency_links=[
     ],

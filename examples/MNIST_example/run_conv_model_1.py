@@ -4,11 +4,12 @@
 References
 ----------
 .. [1] G. Koehler, "MNIST Handwritten Digit Recognition in PyTorch",
-    2020, Available: 
+    2020, Available:
     https://nextjournal.com/gkoehler/pytorch-mnist
 .. [2] PyTorch, "Torch.Utils.Tensorboard",
     https://pytorch.org/docs/stable/tensorboard.html
 """
+from tqdm import tqdm
 import torch
 import torchvision
 from matplotlib import pyplot as plt
@@ -48,8 +49,8 @@ class MyModel(nn.Module):
     """
     Model is from [1_].
 
-    My interpretation of what it is doing is applying 5x5 kernel and 
-    downsampling by 2.  Followed by a second stage of kernel and 
+    My interpretation of what it is doing is applying 5x5 kernel and
+    downsampling by 2.  Followed by a second stage of kernel and
     downsample.  The output is then pushed through a dense layer
     from 320 samples -> 50, followed by a second dense layer bringing
     the samples down from 50 to 10.  The last layer is a softmax
@@ -79,21 +80,22 @@ class MyModel(nn.Module):
 
         # [batch, 20, 4, 4]
         x = x.view(-1, 320)
-        
+
         # [batch, 320]
         x = F.relu(self.fc1(x))
-        
+
         # [batch x 50]
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
 
         # [batch, 10] (10 classes from 0 - 9)
         return F.log_softmax(x, dim=1)
-    
+
 # ---------------------------  train model  ---------------------------------
 def train(model, epoch, device=torch.device('cpu'), writer=None):
     #model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
+
+    for batch_idx, (data, target) in enumerate(tqdm(train_loader)):
         optimizer.zero_grad()
         # move data to device
         data = data.to(device)
@@ -103,14 +105,14 @@ def train(model, epoch, device=torch.device('cpu'), writer=None):
         output = model(data)
 
         # compute neg log likelihood loss
-        
+
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
 
     if writer:
         writer.add_scalar("Loss/train", loss.item(), epoch)
-    
+
     # save network and optimizer state
     torch.save(model.state_dict(), 'results/model.pth')
     torch.save(optimizer.state_dict(), 'results/optimizer.pth')
@@ -137,7 +139,7 @@ def test(model, epoch, device=torch.device('cpu'), writer=None):
 
         if writer:
             writer.add_scalar("Accuracy/test", acc, epoch)
-        
+
 
 if __name__ == "__main__":
     # -------------------------  parse arguments  ---------------------------
@@ -150,7 +152,7 @@ if __name__ == "__main__":
         "--opt", default=0, choices=range(2), type=int, help="0=SGD, 1=Adam")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
-    
+
     # setup device
     if args.device == "cuda":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -167,7 +169,7 @@ if __name__ == "__main__":
     if args.opt == 0:
         optimizer = optim.SGD(
             network.parameters(), lr=args.lr, momentum=args.momentum)
-    
+
     else:
         optimizer = optim.Adam(network.parameters(), lr=args.lr)
 
